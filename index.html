@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PNL Ledger</title>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0b0c0f"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="apple-touch-icon" href="icons/icon-192.png"><link rel="icon" href="icons/icon-192.png"><link rel="stylesheet" href="vendor/fa/css/all.min.css">
+<style>
+:root{--bg:#0b0c0f;--card:#12141a;--cell:#14161c;--g:#34d399;--r:#fb7185;--c:#f5b942;--t:#ecebe6;--m:#8d909b;--line:#23262e;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--t);font-family:'Outfit',system-ui,sans-serif}
+#app{max-width:520px;margin:0 auto;min-height:100vh;padding:calc(14px + env(safe-area-inset-top,0px)) 14px 100px}
+button,select,input,textarea{font-family:inherit;color:inherit}
+.seg{display:flex;background:#18352a;border-radius:16px;padding:5px;gap:2px}
+.seg button{flex:1;padding:11px 0;border:0;border-radius:12px;background:none;color:#a9b3a9;font-size:17px;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--g);color:#04210f}
+.nav{display:flex;align-items:center;justify-content:space-between;margin:18px 4px 14px;font-size:24px;font-weight:600}
+.nav button{background:none;border:0;font-size:30px;padding:2px 12px;cursor:pointer}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:var(--card);border-radius:22px;padding:18px;margin-bottom:14px}
+.card h3{margin:0 0 6px;font-size:18px;font-weight:500;color:#c6cddb}
+.big{font-size:44px;font-weight:600;line-height:1.1}
+.pos{color:var(--g)}.neg{color:var(--r)}
+.bar{height:14px;border-radius:9px;background:#9a9a9a;overflow:hidden;margin:10px 0 8px}
+.bar i{display:block;height:100%;background:var(--g)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mut{color:var(--m)}
+select{background:none;border:0;font-size:19px;font-weight:600;padding:6px 0}
+select.cy{color:var(--c)}
+select option{background:#121a2a;color:var(--t)}
+.wk,.grid{display:grid;gap:10px}
+.wk{margin:10px 0 12px;text-align:center;color:var(--m);font-size:18px;font-weight:600}
+.day{background:var(--cell);border:2px solid transparent;border-radius:18px;height:84px;color:var(--t);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;min-width:0}
+.day b{font-weight:400;font-size:19px}.day span{font-size:15px;font-weight:600}
+.day.pos{background:#0f2a20}.day.neg{background:#2e1519}
+.day.today{border-color:#fff}
+.tile{height:92px}
+.list .item{display:flex;justify-content:space-between;padding:14px 4px;border-bottom:1px solid #1f2940;cursor:pointer}
+#nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:520px;display:flex;background:#161f1c;padding:10px 8px calc(10px + env(safe-area-inset-bottom,0px))}
+#nav button{flex:1;background:none;border:0;color:#aeb8b2;font-size:15px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+#nav button span{font-size:22px;padding:3px 22px;border-radius:16px}
+#nav button.on{color:#fff}#nav button.on span{background:#243b30}
+.btn{display:block;width:100%;padding:16px;border:0;border-radius:16px;background:#fff;color:#000;font-size:19px;font-weight:600;cursor:pointer;margin-top:12px}
+.btn.alt{background:#1d2740;color:var(--t)}.btn.dng{background:#3a1519;color:#ff8a8a}
+.pill{display:flex;gap:12px;margin:14px 0}
+.pill button{flex:1;padding:16px;border-radius:16px;background:#121a2a;border:2px solid #8b95a8;font-size:19px;font-weight:600;cursor:pointer}
+.pill button.p.on{border-color:var(--g);color:var(--g);background:#1c2630}
+.pill button.l.on{border-color:var(--r);color:var(--r);background:#2a1c24}
+label{display:block;font-weight:600;margin:14px 0 8px;font-size:15px}
+input,textarea{width:100%;background:#1f2430;border:0;border-radius:16px;padding:16px;font-size:19px;outline:0}
+textarea{min-height:92px;resize:vertical}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet{background:#121a2a;width:100%;max-width:520px;max-height:94vh;overflow:auto;border-radius:28px 28px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom,0px))}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.thumb{position:relative;width:76px;height:76px;border-radius:12px;overflow:hidden;background:#1f2430;cursor:pointer}
+.thumb img,.thumb video{width:100%;height:100%;object-fit:cover}
+.thumb u{position:absolute;top:2px;right:2px;background:#000a;border-radius:50%;width:22px;height:22px;text-align:center;text-decoration:none;line-height:22px}
+.tr{background:var(--card);border-radius:18px;padding:16px;margin-bottom:12px}
+.tr p{margin:8px 0 0;color:#c6cddb;white-space:pre-wrap}
+.tag{font-size:14px;font-weight:600;padding:3px 10px;border-radius:10px}
+.lnk{background:none;border:0;color:var(--c);font-size:15px;font-weight:600;cursor:pointer;padding:6px 0;margin-right:14px}
+svg text{fill:var(--m);font-size:11px}
+.viewer{position:fixed;inset:0;background:#000e;z-index:30;display:flex;align-items:center;justify-content:center}
+.viewer img,.viewer video{max-width:96vw;max-height:92vh}
+#print{display:none}
+@media print{body>*:not(#print){display:none!important}#print{display:block;color:#000;background:#fff;font-family:Arial,sans-serif;font-size:12px}
+#print table{width:100%;border-collapse:collapse}#print td,#print th{border:1px solid #999;padding:5px;text-align:left;vertical-align:top}}
+@font-face{font-family:Outfit;font-weight:400 500;font-display:swap;src:url(vendor/outfit-400.woff2) format("woff2")}
+@font-face{font-family:Outfit;font-weight:600 700;font-display:swap;src:url(vendor/outfit-600.woff2) format("woff2")}
+#app{min-width:0}
+.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.two>*,.grid>*,.wk>*,.row>*{min-width:0}
+.card{overflow:hidden;min-width:0}
+.fit{display:block;white-space:nowrap;overflow:hidden;max-width:100%;line-height:1.2}
+.ell{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.big{font-size:clamp(26px,8vw,40px)}
+select{max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:17px}
+.day{padding:0 2px;overflow:hidden}.day span{max-width:100%}
+.c7{gap:5px}.c7 .day{height:68px;border-radius:12px;gap:4px}.c7 .day b{font-size:15px}.c7 .day span{font-size:10px}.wk.c7{font-size:12px}
+.wk{font-size:clamp(12px,3.4vw,17px)}
+.nav>span{flex:1;min-width:0;text-align:center}
+.list .item{gap:10px;align-items:center}.list .item>span{min-width:0;overflow-wrap:anywhere}.list .item b{flex:none;max-width:50%}
+.tr p,.mut{overflow-wrap:anywhere}
+.tr{overflow:hidden}
+.thumb u{font-size:11px}
+.btn i,.lnk i{margin-right:6px}
+input,textarea{min-width:0}
+.ic{width:72px;height:72px;margin:0 auto 14px;border-radius:20px;background:var(--g);color:#04210f;display:flex;align-items:center;justify-content:center;font-size:34px}
+/* ===== Redesign: Obsidian & Amber ===== */
+html{background:var(--bg)}
+body{background:radial-gradient(120% 50% at 50% -8%,#1d1a10 0%,#0b0c0f 62%) no-repeat,var(--bg);font-variant-numeric:tabular-nums;letter-spacing:.005em}
+.seg{background:var(--cell);border:1px solid var(--line);border-radius:18px}
+.seg button{color:var(--m);border-radius:14px;font-size:16px;letter-spacing:.02em}
+.seg button.on{background:var(--c);color:#1a1203;box-shadow:0 6px 18px -8px #f5b942}
+.nav{font-size:22px;letter-spacing:-.01em}
+.nav button{color:var(--c);font-size:22px}
+.card,.tr{background:linear-gradient(180deg,#151821,#12141a);border:1px solid var(--line);border-radius:22px;box-shadow:0 14px 30px -22px #000}
+.card>h3:not([style]){font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--m);font-weight:600;margin-bottom:10px}
+.big{letter-spacing:-.03em;font-weight:600}
+.bar{background:#242730;height:10px}
+.bar i{background:linear-gradient(90deg,var(--g),#9af0cb);border-radius:9px}
+select{color:var(--t)}select.cy{color:var(--c)}
+.wk{letter-spacing:.14em;font-size:clamp(10px,2.9vw,13px);font-weight:600}
+.day{background:var(--cell);border:1px solid var(--line);border-radius:18px}
+.day b{color:var(--m);font-weight:500}
+.day.pos{background:linear-gradient(160deg,#10302a,#101a1b);border-color:#1f5445}
+.day.neg{background:linear-gradient(160deg,#35161d,#1a1217);border-color:#5c2430}
+.day.pos b,.day.neg b{color:var(--t)}
+.day.today{border-color:var(--c);box-shadow:0 0 0 2px #f5b94240}
+.day:active,.tile:active{transform:scale(.96)}
+.list .item{border-bottom:1px solid var(--line)}
+#nav{background:rgba(16,18,23,.88);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line);border-radius:24px 24px 0 0}
+#nav button{color:var(--m)}#nav button.on{color:var(--c)}
+#nav button.on span{background:#f5b9421f}
+.btn{background:var(--c);color:#1a1203;border-radius:16px;box-shadow:0 10px 24px -14px #f5b942}
+.btn.alt{background:#1a1d25;color:var(--t);border:1px solid #262a33;box-shadow:none}
+.btn.dng{background:#2a1419;color:#fda4af;border:1px solid #4a2029;box-shadow:none}
+.pill button{background:var(--cell);border:1.5px solid #2a2e38;color:var(--m)}
+.pill button.p.on{border-color:var(--g);color:var(--g);background:#34d3991f}
+.pill button.l.on{border-color:var(--r);color:var(--r);background:#fb71851f}
+input,textarea{background:#1a1d25;border:1px solid #262a33;border-radius:14px}
+input:focus,textarea:focus{border-color:var(--c);box-shadow:0 0 0 3px #f5b94222}
+label{color:var(--m);font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.sheet{background:#12141a;border-top:1px solid #2a2e38;box-shadow:0 -20px 50px -20px #000}
+.sheet::before{content:"";display:block;width:44px;height:4px;border-radius:4px;background:#2c303b;margin:-10px auto 16px}
+.ov{background:rgba(5,6,8,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.thumb{border:1px solid var(--line)}
+.tag{letter-spacing:.04em}
+.ic{background:var(--c);color:#1a1203;box-shadow:0 16px 40px -18px #f5b942}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="nav"></div>
+<div id="print"></div>
+<script src="vendor/xlsx.full.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),pad=n=>String(n).padStart(2,'0');
+let idb,S={accs:[{id:'a1',name:'Main Account'}],acc:'a1',trades:[],goals:{},we:false};
+let U={tab:'cal',mode:'month',a:new Date(),day:null,an:'week'},F=null;
+/* ---------- LocalData (IndexedDB) ---------- */
+const openDB=()=>new Promise((res,rej)=>{const r=indexedDB.open('pnlLedger',1);r.onupgradeneeded=()=>{r.result.createObjectStore('kv');r.result.createObjectStore('media')};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const tx=(st,m,f)=>new Promise((res,rej)=>{const t=idb.transaction(st,m),q=f(t.objectStore(st));t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error)});
+const save=()=>tx('kv','readwrite',s=>s.put(JSON.parse(JSON.stringify(S)),'db'));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+/* ---------- helpers ---------- */
+const key=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`,mk=d=>key(d).slice(0,7);
+const money=n=>(n<0?'-':'')+'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const short=n=>{if(n===0)return '$0';const a=Math.abs(n),s=n>0?'+':'-',f=(v,u)=>s+(Math.round(v*10)/10)+u;return a>=1e9?f(a/1e9,'B'):a>=1e6?f(a/1e6,'M'):a>=1e4?f(a/1e3,'K'):s+Math.round(a*100)/100};
+const sum=a=>a.reduce((s,x)=>s+x.pnl,0),cls=n=>n>0?'pos':n<0?'neg':'';
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const tr=()=>S.trades.filter(t=>t.acc===S.acc),accName=id=>(S.accs.find(a=>a.id===id)||{}).name||'-';
+const mon=a=>{const d=new Date(a.getFullYear(),a.getMonth(),a.getDate());d.setDate(d.getDate()-((d.getDay()+6)%7));return d};
+const fmtDate=k=>new Date(k+'T00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+function inR(t,m,a){if(m==='all')return true;if(m==='month')return t.date.slice(0,7)===mk(a);if(m==='year')return t.date.slice(0,4)==a.getFullYear();
+ const s=mon(a),e=new Date(s.getFullYear(),s.getMonth(),s.getDate()+6);return t.date>=key(s)&&t.date<=key(e)}
+function label(){const a=U.a,m=U.mode;if(m==='month')return a.toLocaleString('en-US',{month:'long',year:'numeric'});if(m==='year')return String(a.getFullYear());if(m==='all')return 'All time';
+ const s=mon(a),e=new Date(s.getFullYear(),s.getMonth(),s.getDate()+6),f=d=>d.toLocaleString('en-US',{month:'short',day:'numeric'});return `${f(s)} – ${f(e)}, ${e.getFullYear()}`}
+function shift(n){const a=U.a,m=U.mode;U.a=m==='month'?new Date(a.getFullYear(),a.getMonth()+n,1):m==='year'?new Date(a.getFullYear()+n,a.getMonth(),1):new Date(a.getFullYear(),a.getMonth(),a.getDate()+7*n);render()}
+const dl=(blob,name)=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)};
+/* ---------- stats ---------- */
+function stats(t){const w=t.filter(x=>x.pnl>0),l=t.filter(x=>x.pnl<0),tp=sum(w),tl=sum(l),n=t.length;
+ const o=[...t].sort((a,b)=>(a.date+a.time)<(b.date+b.time)?-1:1);let e=0,pk=0,dd=0;const eq=[],dds=[];
+ o.forEach(x=>{e+=x.pnl;pk=Math.max(pk,e);eq.push(e);dds.push(e-pk);dd=Math.min(dd,e-pk)});
+ return{n,w:w.length,l:l.length,tp,tl,net:tp+tl,wr:n?w.length/n*100:0,aw:w.length?tp/w.length:0,al:l.length?tl/l.length:0,pf:tl?tp/-tl:tp?Infinity:0,ex:n?(tp+tl)/n:0,dd,eq,dds}}
+function spark(v,color,fill){if(v.length<2)return '<p class=mut style="text-align:center;padding:30px 0">Add at least 2 trades to see this chart.</p>';
+ const W=320,H=120,mn=Math.min(0,...v),mx=Math.max(0,...v),r=(mx-mn)||1,X=i=>i/(v.length-1)*W,Y=y=>6+(mx-y)/r*(H-12);
+ const p=v.map((y,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(y).toFixed(1)}`).join('');
+ return `<svg viewBox="0 0 ${W} ${H}" width="100%"><line x1=0 x2=${W} y1=${Y(0)} y2=${Y(0)} stroke="#33405c" stroke-dasharray="4"/>${fill?`<path d="${p}L${W} ${Y(0)}L0 ${Y(0)}Z" fill="${color}" opacity=".25"/>`:''}<path d="${p}" fill=none stroke="${color}" stroke-width=2.5 stroke-linejoin=round /><text x=2 y=12>${money(mx)}</text><text x=2 y=${H-2}>${money(mn)}</text></svg>`}
+function donut(p,l){const T=p-l,c=2*Math.PI*60,g=T?p/T*c:0;
+ return `<svg viewBox="0 0 160 160" width="170" style="display:block;margin:10px auto;transform:rotate(-90deg)"><circle cx=80 cy=80 r=60 fill=none stroke="${T?'#fb7185':'#8a8a8a'}" stroke-width=18 /><circle cx=80 cy=80 r=60 fill=none stroke="#34d399" stroke-width=18 stroke-dasharray="${g} ${c}"/></svg>`}
+/* ---------- views ---------- */
+function dayCell(d,by){const k=key(d),v=by[k];return `<button class="day ${cls(v||0)} ${k===key(new Date())?'today':''}" onclick="openDay('${k}')"><b>${d.getDate()}</b><span class=fit>${v===undefined?'—':short(v)}</span></button>`}
+function calView(){const m=U.mode,all=tr(),t=all.filter(x=>inR(x,m,U.a)),by={};all.forEach(x=>by[x.date]=(by[x.date]||0)+x.pnl);
+ const gk=mk(U.a),goal=S.goals[gk],mp=sum(all.filter(x=>x.date.slice(0,7)===gk)),pr=goal>0?Math.min(100,Math.max(0,mp/goal*100)):0;
+ let body='';
+ if(m==='month'||m==='week'){const cols=S.we?7:5,cells=[],days=[];
+  if(m==='month'){const n=new Date(U.a.getFullYear(),U.a.getMonth()+1,0).getDate();for(let i=1;i<=n;i++)days.push(new Date(U.a.getFullYear(),U.a.getMonth(),i))}
+  else{const s=mon(U.a);for(let i=0;i<7;i++)days.push(new Date(s.getFullYear(),s.getMonth(),s.getDate()+i))}
+  days.forEach(d=>{const w=(d.getDay()+6)%7;if(!S.we&&w>4)return;if(!cells.length&&m==='month')for(let i=0;i<w;i++)cells.push('<i></i>');cells.push(dayCell(d,by))});
+  body=`<div class="wk ${cols>5?'c7':''}" style="grid-template-columns:repeat(${cols},minmax(0,1fr))">${['MON','TUE','WED','THU','FRI','SAT','SUN'].slice(0,cols).map(x=>`<div>${x}</div>`).join('')}</div><div class="grid ${cols>5?'c7':''}" style="grid-template-columns:repeat(${cols},minmax(0,1fr))">${cells.join('')}</div>`}
+ else if(m==='year'){const y=U.a.getFullYear();body='<div class=grid style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:14px">'+Array.from({length:12},(_,i)=>{const v=sum(all.filter(x=>x.date.slice(0,7)===`${y}-${pad(i+1)}`));
+   return `<button class="day tile ${cls(v)}" onclick="goMonth(${y},${i})"><b>${new Date(y,i,1).toLocaleString('en-US',{month:'short'})}</b><span class=fit>${v?short(v):'—'}</span></button>`}).join('')+'</div>'}
+ else{const g={};all.forEach(x=>{const k=x.date.slice(0,7);(g[k]=g[k]||[]).push(x)});const ks=Object.keys(g).sort().reverse();
+  body='<div class=list style="margin-top:8px">'+(ks.length?ks.map(k=>{const [y,mo]=k.split('-');return `<div class=item onclick="goMonth(${y},${mo-1})"><span>${new Date(y,mo-1,1).toLocaleString('en-US',{month:'long',year:'numeric'})} <small class=mut>(${g[k].length} trades)</small></span><b class="fit ${cls(sum(g[k]))}">${money(sum(g[k]))}</b></div>`}).join(''):'<p class=mut>No trades yet. Open a day and add your first trade.</p>')+'</div>'}
+ return `<div class=seg>${['week','month','year','all'].map(x=>`<button class="${m===x?'on':''}" onclick="U.mode='${x}';render()">${x[0].toUpperCase()+x.slice(1)}</button>`).join('')}</div>
+ <div class=nav><button onclick="shift(-1)" ${m==='all'?'style="visibility:hidden"':''}><i class="fa-solid fa-chevron-left"></i></button><span class=ell>${label()}</span><button onclick="shift(1)" ${m==='all'?'style="visibility:hidden"':''}><i class="fa-solid fa-chevron-right"></i></button></div>
+ <div class=two><div class=card style="margin:0"><h3>Total P&amp;L</h3><div class="big fit ${cls(sum(t))}" style="font-size:36px">${money(sum(t))}</div></div>
+ <div class=card style="margin:0"><div class=row><h3 class=ell style="margin:0;flex:1">Monthly goal</h3><button class=lnk style="margin:0" onclick="setGoal('${gk}')" aria-label="Edit goal"><i class="fa-solid fa-pen-to-square" style="margin:0"></i></button></div><div class=bar><i style="width:${pr}%"></i></div><b class="fit ${cls(mp)}" style="font-size:19px">${money(mp)}</b><span class="fit mut" style="font-size:14px">${goal>0?'of '+money(goal):'Not set yet'}</span></div></div>
+ <div class=row style="margin:14px 0 0">${m==='month'||m==='week'?`<select onchange="S.we=this.value==='1';save();render()"><option value=0 ${S.we?'':'selected'}>Weekends: OFF</option><option value=1 ${S.we?'selected':''}>Weekends: ON</option></select>`:'<span></span>'}${accSel()}</div>${body}`}
+const accSel=()=>`<select class=cy onchange="S.acc=this.value;save();render()">${S.accs.map(a=>`<option value="${a.id}" ${a.id===S.acc?'selected':''}>${esc(a.name)}</option>`).join('')}</select>`;
+function dayView(){const k=U.day,t=tr().filter(x=>x.date===k).sort((a,b)=>a.time<b.time?-1:1);
+ return `<div class=nav style="justify-content:flex-start;gap:12px"><button onclick="U.day=null;render()" aria-label="Back"><i class="fa-solid fa-arrow-left"></i></button><span class=ell style="text-align:left">${fmtDate(k)}</span></div>
+ <div class=card><h3>Day P&amp;L</h3><div class="big fit ${cls(sum(t))}">${money(sum(t))}</div></div>
+ ${t.length?t.map(x=>`<div class=tr><div class=row><span><b>${x.time}</b> <span class="tag ${x.pnl>=0?'pos':'neg'}" style="background:${x.pnl>=0?'#0f2a20':'#2e1519'}">${x.pnl>=0?'Profit':'Loss'}</span></span><b class="fit ${cls(x.pnl)}" style="font-size:22px;flex:1;text-align:right">${money(x.pnl)}</b></div>
+ ${x.note?`<p><b>Note:</b> ${esc(x.note)}</p>`:''}${x.lesson?`<p><b>Lesson:</b> ${esc(x.lesson)}</p>`:''}
+ <div class=thumbs>${(x.media||[]).map(m=>`<div class=thumb data-m="${m}"></div>`).join('')}</div>
+ <div style="margin-top:8px"><button class=lnk onclick="openForm('${k}','${x.id}')"><i class="fa-solid fa-pen"></i>Edit</button><button class=lnk style="color:var(--r)" onclick="delTrade('${x.id}')"><i class="fa-solid fa-trash"></i>Delete</button></div></div>`).join(''):'<p class=mut style="text-align:center;margin:30px 0">No trades on this day.</p>'}
+ <button class=btn onclick="openForm('${k}')"><i class="fa-solid fa-plus"></i> New Trade</button>`}
+function anView(){const t=tr().filter(x=>inR(x,U.an,new Date())),s=stats(t),pf=s.pf===Infinity?'∞':s.pf.toFixed(2);
+ return `<h2 style="text-align:center;margin:6px 0 16px">Analytics</h2>
+ <div class=card><h3>Drawdown chart</h3>${spark(s.dds,'#fb7185',true)}<div class=row><span class=mut style="flex:none">Max drawdown</span><b class="fit neg" style="max-width:60%">${money(s.dd)}</b></div></div>
+ <div class=row style="margin-bottom:12px">${accSel()}<select onchange="U.an=this.value;render()">${[['week','This Week'],['month','This Month'],['year','This Year'],['all','All Time']].map(([v,n])=>`<option value=${v} ${U.an===v?'selected':''}>${n}</option>`).join('')}</select></div>
+ <div class=card><h3 style="font-size:24px">Profit and Loss</h3><div class=mut>Total Profit: <b style="color:var(--t)">${money(s.tp)}</b></div><div class=mut>Total Loss: <b style="color:var(--t)">${money(s.tl)}</b></div>${donut(s.tp,s.tl)}
+ <div class=row style="justify-content:center;gap:24px"><span><b class=pos>●</b> Profit</span><span><b class=neg>●</b> Loss</span></div><div style="text-align:center;margin-top:16px"><div>Net PnL</div><div class="big fit ${cls(s.net)}" style="font-size:38px">${money(s.net)}</div></div></div>
+ <div class=card><h3 style="font-size:24px">Win rate</h3><div class=mut>Total trades: <b style="color:var(--t)">${s.n}</b></div><div class=mut>Winning: <b class=pos>${s.w}</b> · Losing: <b class=neg>${s.l}</b></div>
+ <div class="big" style="text-align:center;margin-top:14px">${s.wr.toFixed(1)}%</div><div class=bar style="background:#fb7185"><i style="width:${s.wr}%"></i></div></div>
+ <div class=card><h3 style="font-size:24px">Profit Factor and Expectancy</h3><div class=mut>Avg win: <b class=pos>${money(s.aw)}</b></div><div class=mut>Avg loss: <b class=neg>${money(s.al)}</b></div>
+ <div class=two style="margin-top:14px;text-align:center"><div><div class=mut>Profit factor</div><div class="big fit" style="font-size:34px">${pf}</div></div><div><div class=mut>Expectancy / trade</div><div class="big fit ${cls(s.ex)}" style="font-size:34px">${money(s.ex)}</div></div></div></div>`}
+function setView(){return `<h2 style="text-align:center;margin:6px 0 16px">Settings</h2>${dip?'<div class=card><h3>App</h3><button class="btn" style="margin-top:6px" onclick="lsSet(\'pwaLater\',0);showInstall()"><i class="fa-solid fa-download"></i>Install app</button></div>':''}
+ <div class=card><h3>Accounts</h3>${S.accs.map(a=>`<div class=row style="padding:8px 0"><span class=ell style="flex:1">${esc(a.name)}</span><span style="flex:none"><button class=lnk aria-label="Rename" onclick="renAcc('${a.id}')"><i class="fa-solid fa-pen"></i></button>${S.accs.length>1?`<button class=lnk style="color:var(--r);margin:0" aria-label="Delete" onclick="delAcc('${a.id}')"><i class="fa-solid fa-trash" style="margin:0"></i></button>`:''}</span></div>`).join('')}<button class="btn alt" onclick="addAcc()"><i class="fa-solid fa-plus"></i>Add account</button></div>
+ <div class=card><h3>Export</h3><button class="btn alt" style="margin-top:6px" onclick="exXlsx()"><i class="fa-solid fa-file-excel"></i>Export to Excel (.xlsx)</button><button class="btn alt" onclick="exPdf()"><i class="fa-solid fa-file-pdf"></i>Export to PDF</button><p class=mut style="font-size:14px;margin:10px 0 0">PDF opens the print dialog: choose "Save as PDF". Exports cover all accounts and all dates.</p></div>
+ <div class=card><h3>Backup</h3><button class="btn alt" style="margin-top:6px" onclick="exJson()"><i class="fa-solid fa-floppy-disk"></i>Download backup (.json)</button><button class="btn alt" onclick="$('#imp').click()"><i class="fa-solid fa-upload"></i>Restore from backup</button><input id=imp type=file accept=".json" hidden onchange="imp(this.files[0])"><p class=mut style="font-size:14px;margin:10px 0 0">Data is stored on this device in your browser. Backups do not include photos or videos.</p></div>
+ <button class="btn dng" onclick="wipe()"><i class="fa-solid fa-trash"></i>Delete all data</button>`}
+function render(){$('#app').innerHTML=U.day?dayView():U.tab==='cal'?calView():U.tab==='an'?anView():setView();
+ $('#nav').innerHTML=[['cal','Calendar','fa-calendar-days'],['an','Analytics','fa-chart-line'],['set','Settings','fa-gear']].map(([k,n,i])=>`<button class="${U.tab===k?'on':''}" onclick="U.tab='${k}';U.day=null;render()"><span><i class="fa-solid ${i}"></i></span>${n}</button>`).join('');loadMedia();fit()}
+async function loadMedia(){document.querySelectorAll('[data-m]').forEach(async el=>{const b=await tx('media','readonly',s=>s.get(el.dataset.m));if(!b)return;const u=URL.createObjectURL(b),v=b.type.startsWith('video');
+ el.insertAdjacentHTML('afterbegin',v?`<video src="${u}" muted></video>`:`<img src="${u}">`);el.onclick=e=>{if(e.target.closest('u'))return;const w=document.createElement('div');w.className='viewer';w.innerHTML=v?`<video src="${u}" controls autoplay></video>`:`<img src="${u}">`;w.onclick=ev=>{if(ev.target.tagName!=='VIDEO')w.remove()};document.body.append(w)}})}
+/* ---------- actions ---------- */
+function openDay(k){U.day=k;render();scrollTo(0,0)}
+function goMonth(y,i){U.a=new Date(y,i,1);U.mode='month';render()}
+function setGoal(k){const v=prompt('Monthly goal (USD)',S.goals[k]||'');if(v===null)return;const n=parseFloat(v);if(n>0)S.goals[k]=n;else delete S.goals[k];save();render()}
+function addAcc(){const n=prompt('Account name');if(n&&n.trim()){const id=uid();S.accs.push({id,name:n.trim()});S.acc=id;save();render()}}
+function renAcc(id){const a=S.accs.find(x=>x.id===id),n=prompt('New name',a.name);if(n&&n.trim()){a.name=n.trim();save();render()}}
+async function delAcc(id){if(!confirm('Delete this account and all its trades?'))return;for(const t of S.trades.filter(x=>x.acc===id))await rmMedia(t);S.trades=S.trades.filter(x=>x.acc!==id);S.accs=S.accs.filter(x=>x.id!==id);if(S.acc===id)S.acc=S.accs[0].id;await save();render()}
+const rmMedia=async t=>{for(const m of t.media||[])await tx('media','readwrite',s=>s.delete(m))};
+async function delTrade(id){if(!confirm('Delete this trade?'))return;const t=S.trades.find(x=>x.id===id);await rmMedia(t);S.trades=S.trades.filter(x=>x.id!==id);await save();render()}
+function openForm(date,id){const t=id?S.trades.find(x=>x.id===id):null,n=new Date();
+ F={date,id,type:t?(t.pnl<0?'l':'p'):'p',old:[...(t&&t.media||[])],del:[],files:[]};
+ const o=document.createElement('div');o.className='ov';o.id='form';
+ o.innerHTML=`<div class=sheet><div class=row><h2 style="margin:0;font-size:20px;min-width:0;overflow-wrap:anywhere">${t?'Edit Trade':'New Trade'} on ${new Date(date+'T00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</h2><button class=lnk style="font-size:26px;color:var(--t);margin:0" aria-label="Close" onclick="closeForm()"><i class="fa-solid fa-xmark" style="margin:0"></i></button></div>
+ <div class=pill><button class="p ${F.type==='p'?'on':''}" onclick="setType('p')">Profit</button><button class="l ${F.type==='l'?'on':''}" onclick="setType('l')">Loss</button></div>
+ <div class=two><div><label>P&amp;L (USD)</label><input id=fp type=number inputmode=decimal step=any min=0 placeholder="P&amp;L" value="${t?Math.abs(t.pnl):''}"></div><div><label>Time*</label><input id=ft type=time value="${t?t.time:pad(n.getHours())+':'+pad(n.getMinutes())}"></div></div>
+ <label>Note (optional)</label><textarea id=fn placeholder="Note">${esc(t&&t.note)}</textarea><label>Lesson (optional)</label><textarea id=fl placeholder="Lesson">${esc(t&&t.lesson)}</textarea>
+ <label>Add image or video</label><div class=thumbs id=fm></div><button class=lnk style="font-size:19px;margin-top:10px" onclick="$('#ff').click()"><i class="fa-solid fa-photo-film"></i>Add image or video</button><input id=ff type=file accept="image/*,video/*" multiple hidden onchange="addFiles(this)">
+ <button class=btn onclick="submitTrade()">${t?'Save Changes':'Submit Trade'}</button></div>`;
+ document.body.append(o);drawMedia()}
+function drawMedia(){const el=$('#fm');if(!el)return;el.innerHTML=F.old.map(m=>`<div class=thumb data-m="${m}"><u onclick="rmOld('${m}')"><i class="fa-solid fa-xmark"></i></u></div>`).join('')+F.files.map((f,i)=>{const u=URL.createObjectURL(f);return `<div class=thumb>${f.type.startsWith('video')?`<video src="${u}" muted></video>`:`<img src="${u}">`}<u onclick="F.files.splice(${i},1);drawMedia()"><i class="fa-solid fa-xmark"></i></u></div>`}).join('');loadMedia()}
+function rmOld(m){F.old=F.old.filter(x=>x!==m);F.del.push(m);drawMedia()}
+function addFiles(i){F.files.push(...i.files);i.value='';drawMedia()}
+function setType(t){F.type=t;document.querySelector('.pill .p').classList.toggle('on',t==='p');document.querySelector('.pill .l').classList.toggle('on',t==='l')}
+function closeForm(){const f=$('#form');if(f)f.remove();F=null}
+async function submitTrade(){const v=parseFloat($('#fp').value);if(!(v>=0)||$('#fp').value===''){alert('Enter the P&L amount.');return}if(!$('#ft').value){alert('Enter the time.');return}
+ const ids=[...F.old];for(const f of F.files){const id=uid();await tx('media','readwrite',s=>s.put(f,id));ids.push(id)}
+ for(const m of F.del)await tx('media','readwrite',s=>s.delete(m));
+ const d={date:F.date,time:$('#ft').value,pnl:F.type==='l'?-v:v,note:$('#fn').value.trim(),lesson:$('#fl').value.trim(),media:ids};
+ if(F.id)Object.assign(S.trades.find(x=>x.id===F.id),d);else S.trades.push({id:uid(),acc:S.acc,...d});
+ await save();closeForm();render()}
+/* ---------- export ---------- */
+const rows=()=>[...S.trades].sort((a,b)=>(a.date+a.time)<(b.date+b.time)?-1:1).map(x=>({Account:accName(x.acc),Date:x.date,Time:x.time,Type:x.pnl>=0?'Profit':'Loss','P&L (USD)':x.pnl,Note:x.note||'',Lesson:x.lesson||'',Media:(x.media||[]).length}));
+function exXlsx(){const r=rows();if(!r.length){alert('No trades to export yet.');return}
+ const g={};S.trades.forEach(x=>{const k=accName(x.acc)+'|'+x.date.slice(0,7);g[k]=g[k]||{Account:accName(x.acc),Month:x.date.slice(0,7),Trades:0,Wins:0,'Net P&L (USD)':0};g[k].Trades++;if(x.pnl>0)g[k].Wins++;g[k]['Net P&L (USD)']+=x.pnl});
+ if(window.XLSX){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(r),'Trades');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(Object.values(g)),'Monthly');XLSX.writeFile(wb,'pnl-ledger.xlsx')}
+ else{const h=Object.keys(r[0]),c=[h.join(',')].concat(r.map(o=>h.map(k=>'"'+String(o[k]).replace(/"/g,'""')+'"').join(',')));dl(new Blob(['\ufeff'+c.join('\n')],{type:'text/csv'}),'pnl-ledger.csv');alert('Offline: the Excel library could not load, so a CSV file (opens in Excel) was saved instead.')}}
+function exPdf(){const r=rows();if(!r.length){alert('No trades to export yet.');return}const s=stats(S.trades);
+ $('#print').innerHTML=`<h2>PNL Ledger</h2><p>Exported ${new Date().toLocaleDateString('en-GB')} · Trades: ${s.n} · Win rate: ${s.wr.toFixed(1)}% · Net P&amp;L: <b>${money(s.net)}</b> · Max drawdown: ${money(s.dd)}</p>
+ <table><tr>${Object.keys(r[0]).filter(k=>k!=='Media').map(k=>`<th>${k}</th>`).join('')}</tr>${r.map(o=>`<tr>${Object.keys(o).filter(k=>k!=='Media').map(k=>`<td>${esc(o[k])}</td>`).join('')}</tr>`).join('')}</table>`;
+ setTimeout(()=>print(),150)}
+const exJson=()=>dl(new Blob([JSON.stringify(S)],{type:'application/json'}),'pnl-ledger-backup.json');
+function imp(f){if(!f)return;const r=new FileReader();r.onload=async()=>{try{const d=JSON.parse(r.result);if(!d.accs||!d.trades)throw 0;if(!confirm('Replace current data with this backup?'))return;S=d;await save();render()}catch(e){alert('That file is not a valid backup.')}};r.readAsText(f)}
+async function wipe(){if(!confirm('Delete ALL trades, accounts and media? This cannot be undone.'))return;await tx('media','readwrite',s=>s.clear());S={accs:[{id:'a1',name:'Main Account'}],acc:'a1',trades:[],goals:{},we:false};await save();render()}
+/* ---------- fit & PWA ---------- */
+function fit(){document.querySelectorAll('.fit').forEach(el=>{if(el.dataset.fs===undefined)el.dataset.fs=el.style.fontSize;el.style.fontSize=el.dataset.fs;let s=parseFloat(getComputedStyle(el).fontSize);while(el.scrollWidth>el.clientWidth+1&&s>8){s-=1;el.style.fontSize=s+'px'}})}
+addEventListener('resize',fit);if(document.fonts)document.fonts.ready.then(fit);
+if('serviceWorker' in navigator){const had=navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!window.__r){window.__r=1;location.reload()}});addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+let dip=null;
+const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+function showInstall(ios){if($('#pwa')||standalone()||(!dip&&!ios))return;if(Date.now()-(+lsGet('pwaLater')||0)<3*864e5)return;
+ const o=document.createElement('div');o.className='ov';o.id='pwa';o.onclick=e=>{if(e.target===o)laterInstall()};
+ o.innerHTML=`<div class=sheet style="text-align:center"><div class=ic><i class="fa-solid fa-chart-line"></i></div><h2 style="margin:0 0 8px;font-size:22px">Install PNL Ledger</h2>
+ <p class=mut style="margin:0 0 6px">${ios&&!dip?'Tap the Share button in Safari, then choose <b>Add to Home Screen</b>.':'Add it to your home screen to open it like a regular app, even without internet.'}</p>
+ ${ios&&!dip?'':'<button class=btn onclick="doInstall()"><i class="fa-solid fa-download"></i>Install app</button>'}<button class="btn alt" onclick="laterInstall()">${ios&&!dip?'Got it':'Not now'}</button></div>`;document.body.append(o)}
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e;if(U.tab==='set'&&!U.day)render();setTimeout(showInstall,1500)});
+async function doInstall(){const p=dip;dip=null;const o=$('#pwa');if(o)o.remove();if(!p)return;p.prompt();await p.userChoice;if(U.tab==='set')render()}
+function laterInstall(){lsSet('pwaLater',Date.now());const o=$('#pwa');if(o)o.remove()}
+addEventListener('appinstalled',()=>{dip=null;const o=$('#pwa');if(o)o.remove();if(U.tab==='set')render()});
+/* ---------- init ---------- */
+(async()=>{try{idb=await openDB();const d=await tx('kv','readonly',s=>s.get('db'));if(d)S=d;if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){alert('Local storage is not available in this browser mode. Data will not be saved.');idb={transaction:()=>({objectStore:()=>({put(){},get(){return{}},delete(){},clear(){}}),set oncomplete(f){setTimeout(f)}})}}render();if(/iphone|ipad|ipod/i.test(navigator.userAgent))setTimeout(()=>showInstall(true),2000)})();
+</script>
+</body>
+</html>
